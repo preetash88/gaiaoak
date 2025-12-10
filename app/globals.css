@@ -1,26 +1,393 @@
+/* app/globals.css */
 @import "tailwindcss";
 
+/* app/globals.css */
+
+/* Tailwind v4 import at top (you already have it) */
+@import "tailwindcss";
+
+/* CSS variables for theming */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f7f7fb;
+  --surface: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.28);
+  --accent: #fb923c;
+  --accent-dark: #c2410c;
+  --muted: #0f172a;
+  --text: #0f172a;
+  --nav-blur: 15px;
+  /* lighter glass for light mode (slightly warm) */
+  --nav-bg: rgba(255, 255, 255, 0.28);
+  --nav-border: rgba(255, 255, 255, 0.45);
+  --nav-inset: rgba(255, 255, 255, 0.6);
+  --nav-shadow: rgba(2, 6, 23, 0.08);
+  --nav-blur: 18px;
+  --nav-accent-tint: rgba(
+    251,
+    146,
+    60,
+    0.06
+  ); /* subtle warm tint in light mode */
+  --surface-transition: background 260ms ease, color 260ms ease,
+    box-shadow 260ms ease, border-color 260ms ease, backdrop-filter 260ms ease;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html.dark {
+  --bg: #0b1220;
+  --surface: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --accent: #fb923c;
+  --accent-dark: #c2410c;
+  --muted: #e6eef8;
+  --text: #e6eef8;
+  /* darker glass for dark mode */
+  --nav-bg: rgba(15, 18, 24, 0.4);
+
+  /* stronger white highlight → clear glass border */
+  --nav-border: rgba(255, 255, 255, 0.28);
+
+  /* brighter inner bevel line */
+  --nav-inset: rgba(255, 255, 255, 0.35);
+
+  /* stronger drop shadow for contrast */
+  --nav-shadow: rgba(0, 0, 0, 0.65);
+
+  --nav-blur: 24px;
+  --nav-accent-tint: rgba(56, 189, 248, 0.1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --bg: #0b1020;
+  --muted: #9ca3af; /* gray-400 in dark */
+  --text: #f8fafc; /* near white */
+  --card: #0f1724;
+  --header-bg: #2b2b36; /* dark header */
+  --donate-text: #ff8a8a;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%); */
+  background-position: center;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 240ms ease, color 240ms ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial;
+  /* background-image: url("https://images.unsplash.com/photo-1519681393784-d120267933ba?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1124&q=100"); */
+}
+
+/* Use variables in utility classes via CSS layer if needed */
+@layer base {
+  html,
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+  }
+}
+
+/* app/globals.css — add inside or below your existing @layer components */
+@keyframes donate-dance {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  20% {
+    transform: translateY(-3px) scale(1.02);
+  }
+  40% {
+    transform: translateY(0) scale(1);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.01);
+  }
+  80% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes donate-color {
+  0% {
+    --donate-bg: #ffffff;
+    --donate-text: #c41e1e;
+  }
+  25% {
+    --donate-bg: #fff1e6;
+    --donate-text: #b31a1a;
+  }
+  50% {
+    --donate-bg: #fff7f3;
+    --donate-text: #c41e1e;
+  }
+  75% {
+    --donate-bg: #fff6e0;
+    --donate-text: #9f1515;
+  }
+  100% {
+    --donate-bg: #ffffff;
+    --donate-text: #c41e1e;
+  }
+}
+
+@layer components {
+  .donate-dance {
+    --donate-text: #c41e1e;
+    --donate-bg: #ffffff;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+
+    background-color: var(--donate-bg);
+    color: var(--donate-text);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+
+    transform-origin: center;
+    will-change: transform, background-color, color;
+
+    animation: donate-dance 2.2s ease-in-out infinite;
+    transition: background-color 0.25s ease, color 0.25s ease,
+      box-shadow 0.25s ease, transform 0.18s ease;
+  }
+
+  .donate-dance:hover,
+  .donate-dance:focus-visible {
+    background-color: color-mix(in srgb, var(--donate-text) 55%, white);
+    color: rgb(234, 226, 226);
+
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px) scale(1.02);
+
+    animation-duration: 1.2s;
+    outline: none;
+  }
+
+  .donate-dance:active {
+    transform: translateY(0) scale(0.97);
+    background-color: color-mix(in srgb, var(--donate-text) 70%, white);
+    color: white;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .donate-dance {
+      animation: none;
+      transform: none;
+    }
+  }
+}
+@layer components {
+  .donate-dance {
+    --donate-bg: #ffffff;
+    --donate-text: #c41e1e;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    background-color: var(--donate-bg);
+    color: var(--donate-text);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+    transform-origin: center;
+    will-change: transform, background-color, color;
+    animation: donate-dance 2.2s ease-in-out infinite,
+      donate-color 6s linear infinite;
+    transition: box-shadow 0.18s ease, transform 0.12s ease;
+  }
+
+  .donate-dance:hover,
+  .donate-dance:focus-visible {
+    animation-duration: 1.2s, 3s;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+    outline: none;
+  }
+
+  .donate-dance:active {
+    transform: translateY(0) scale(0.995);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .donate-dance {
+      animation: none;
+      transition: box-shadow 0.18s ease;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .donate-dance {
+      padding: 0.45rem 0.85rem;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+/* ---------------------------
+   Custom Glass Morphism Card
+----------------------------*/
+
+.gcard {
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(209, 213, 219, 0.3);
+}
+
+/* ---------- glass surfaces ---------- */
+
+.glass {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(2, 6, 23, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+/* glass-card (specific size example) */
+.glass-card {
+  width: 240px;
+  height: 360px;
+  padding: 16px;
+  background: var(--surface);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+}
+
+.glass-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.8),
+    transparent,
+    rgba(255, 255, 255, 0.3)
+  );
+}
+
+/* glass-nav: premium header */
+.glass-nav {
+  top: 4px;
+  margin-inline: calc(var(--spacing) * 1);
+  position: sticky;
+  z-index: 50;
+  overflow: hidden;
+  /* using variables */
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--nav-border);
+  box-shadow: 0 8px 28px var(--nav-shadow);
+  backdrop-filter: blur(var(--nav-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--nav-blur)) saturate(120%);
+
+  /* subtle tint overlay using additive pseudo-element */
+  transition: var(--surface-transition);
+  border-radius: 16px;
+  background-blend-mode: overlay;
+}
+
+/* tint overlay (subtle color wash) */
+.glass-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--nav-accent-tint));
+  mix-blend-mode: normal;
+  opacity: 0.9;
+  transition: opacity 300ms ease, transform 300ms ease;
+  border-bottom: 1px solid var(--nav-border);
+}
+
+/* top bevel highlight */
+.glass-nav::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.75),
+    transparent
+  );
+  pointer-events: none;
+  opacity: 0.95;
+  transition: opacity 260ms ease;
+  border-bottom: 1px solid var(--nav-border);
+}
+
+/* scrolled state: slightly stronger blur + darker tint + stronger shadow */
+.glass-nav[data-scrolled="true"] {
+  backdrop-filter: blur(calc(var(--nav-blur) + 6px)) saturate(130%);
+  -webkit-backdrop-filter: blur(calc(var(--nav-blur) + 6px)) saturate(130%);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.604);
+  transform: translateZ(0);
+  border-bottom-color: rgba(255, 255, 255, 0.45);
+  border-top-color: rgba(17, 17, 17, 0);
+  /* border-color: rgba(255, 255, 255, 0.45); */
+}
+.glass-nav[data-scrolled="true"]::before {
+  transform: translateY(-2px);
+  opacity: 1;
+}
+
+.glass-nav[data-scrolled="true"]::after {
+  transform: translateY(+2px);
+  opacity: 1;
+  border-bottom: 1px solid var(--nav-border);
+}
+
+/* small safe fallback for environments without backdrop-filter */
+@supports not (
+  (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))
+) {
+  .glass-nav {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.96),
+      rgba(255, 255, 255, 0.92)
+    );
+  }
+  html.dark .glass-nav {
+    background: rgba(16, 18, 23, 0.96);
+  }
 }
