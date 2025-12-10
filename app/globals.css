@@ -21,7 +21,7 @@
   --nav-border: rgba(255, 255, 255, 0.45);
   --nav-inset: rgba(255, 255, 255, 0.6);
   --nav-shadow: rgba(2, 6, 23, 0.08);
-  --nav-blur: 18px;
+  --nav-blur: 28px;
   --nav-accent-tint: rgba(
     251,
     146,
@@ -52,8 +52,9 @@ html.dark {
   /* stronger drop shadow for contrast */
   --nav-shadow: rgba(0, 0, 0, 0.65);
 
-  --nav-blur: 24px;
+  --nav-blur: 36px;
   --nav-accent-tint: rgba(56, 189, 248, 0.1);
+  
 }
 
 .dark {
@@ -75,7 +76,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial;
-  /* background-image: url("https://images.unsplash.com/photo-1519681393784-d120267933ba?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1124&q=100"); */
+    
+ 
 }
 
 /* Use variables in utility classes via CSS layer if needed */
@@ -307,27 +309,33 @@ body {
   );
 }
 
-/* glass-nav: premium header */
+/* make the header background a bit more opaque so blur shows through more */
 .glass-nav {
-  top: 4px;
-  margin-inline: calc(var(--spacing) * 1);
+  /* keep it sticky and rounded as before */
   position: sticky;
+  top: 4px;
   z-index: 50;
   overflow: hidden;
-  /* using variables */
-  background: var(--nav-bg);
-  border-bottom: 1px solid color-mix(in srgb, var(--nav-border) 60%, rgba(0,0,0,0));
-  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-  backdrop-filter: blur(var(--nav-blur)) saturate(120%);
-  -webkit-backdrop-filter: blur(var(--nav-blur)) saturate(120%);
 
-  /* subtle tint overlay using additive pseudo-element */
+  /* stronger, slightly more opaque glass */
+  background: color-mix(in srgb, var(--nav-bg) 70%, rgba(255,255,255,0.06)); 
+  /* fallback for mixing-support: use a clearer rgba */
+  background-color: rgba(255,255,255,0.52);
+
+  /* stronger blur for the glass effect */
+  backdrop-filter: blur(var(--nav-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--nav-blur)) saturate(140%);
+
+  /* keep border + subtle shadow but stronger */
+  border-bottom: 1px solid color-mix(in srgb, var(--nav-border) 80%, rgba(0,0,0,0));
+  box-shadow: 0 14px 36px rgba(2, 6, 23, 0.12);
+
   transition: var(--surface-transition);
   border-radius: 16px;
   background-blend-mode: overlay;
 }
 
-/* tint overlay (subtle color wash) */
+/* tint overlay: make it slightly stronger for contrast */
 .glass-nav::before {
   content: "";
   position: absolute;
@@ -335,12 +343,12 @@ body {
   pointer-events: none;
   background: linear-gradient(180deg, transparent, var(--nav-accent-tint));
   mix-blend-mode: normal;
-  opacity: 0.9;
-  transition: opacity 300ms ease, transform 300ms ease;
+  opacity: 0.98; /* increase from 0.9 → stronger tint */
+  transition: opacity 260ms ease, transform 260ms ease;
   border-bottom: 1px solid var(--nav-border);
 }
 
-/* top bevel highlight */
+/* top bevel highlight — keep it visible but slightly softer */
 .glass-nav::after {
   content: "";
   position: absolute;
@@ -348,51 +356,149 @@ body {
   right: 0;
   top: 0;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.75),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
   pointer-events: none;
-  opacity: 0.95;
+  opacity: 0.98;
   transition: opacity 260ms ease;
   border-bottom: 1px solid var(--nav-border);
 }
 
-/* scrolled state: slightly stronger blur + darker tint + stronger shadow */
+/* stronger scrolled state: heavier blur and shadow */
 .glass-nav[data-scrolled="true"] {
-  backdrop-filter: blur(calc(var(--nav-blur) + 6px)) saturate(130%);
-  -webkit-backdrop-filter: blur(calc(var(--nav-blur) + 6px)) saturate(130%);
-   box-shadow: 0 14px 40px rgba(0,0,0,0.45);
+  backdrop-filter: blur(calc(var(--nav-blur) + 12px)) saturate(150%);
+  -webkit-backdrop-filter: blur(calc(var(--nav-blur) + 12px)) saturate(150%);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
   transform: translateZ(0);
-  border-bottom-color: rgba(255, 255, 255, 0.45);
-  border-top-color: rgba(17, 17, 17, 0);
-  /* border-color: rgba(255, 255, 255, 0.45); */
+  border-bottom-color: rgba(255, 255, 255, 0.55);
 }
+
+/* scrolled pseudo tweaks so the tint/shine feels more pronounced */
 .glass-nav[data-scrolled="true"]::before {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   opacity: 1;
 }
 
 .glass-nav[data-scrolled="true"]::after {
-  transform: translateY(+2px);
+  transform: translateY(+3px);
   opacity: 1;
   border-bottom: 1px solid var(--nav-border);
 }
 
-/* small safe fallback for environments without backdrop-filter */
-@supports not (
-  (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))
-) {
+/* Performance: reduce heavy effects on small screens */
+@media (max-width: 640px) {
   .glass-nav {
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(255, 255, 255, 0.92)
-    );
+    backdrop-filter: blur(calc(var(--nav-blur) - 12px)); /* reduce for mobile */
+    -webkit-backdrop-filter: blur(calc(var(--nav-blur) - 12px));
+    box-shadow: 0 8px 18px rgba(0,0,0,0.10);
   }
-  html.dark .glass-nav {
-    background: rgba(16, 18, 23, 0.96);
+}
+
+/* Respect reduced-motion: keep transitions minimal if user prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .glass-nav,
+  .glass-nav::before,
+  .glass-nav::after {
+    transition: none !important;
+    will-change: auto;
+    animation: none !important;
+  }
+}
+
+/* ===== Masonry layout for PinGallery ===== */
+.masonry {
+  column-count: 1;
+  column-gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .masonry { column-count: 2; }
+}
+
+@media (min-width: 1024px) {
+  .masonry { column-count: 3; }
+}
+
+/* Avoid breaks inside each card */
+.break-inside-avoid {
+  -webkit-column-break-inside: avoid;
+  -moz-column-break-inside: avoid;
+  column-break-inside: avoid;
+}
+
+/* optional: ensure images are responsive inside cards */
+.pin-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ----------------------------
+   Global background + helpers
+   ----------------------------*/
+
+/* Ensure the app and root stack are full height so background covers viewport */
+html, body, #__next {
+  height: 100%;
+  min-height: 100%;
+}
+
+/* Prevent horizontal overflow introduced by SVG or wide images */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Background layer helper: used by layout to ensure the BG sits behind everything */
+.site-bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -20; /* behind content */
+  pointer-events: none;
+  overflow: hidden;
+  background-attachment: fixed; /* optional, remove on mobile if causing stutter */
+   filter: brightness(0.68) saturate(0.85);
+}
+
+/* Optional: the swoosh container (SVG) sizing helper */
+.swoosh {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1600px; /* large enough to cover wide screens */
+  max-width: none;
+  top: -6rem; /* tweak to move up/down */
+  opacity: 0.9;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+/* Make sure the main content sits visually above background */
+.site-main {
+  position: relative;
+  z-index: 10;
+}
+
+/* Grain overlay (optional) */
+.bg-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/textures/grain.png");
+  background-repeat: repeat;
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* small devices: reduce heavy effects for performance */
+@media (max-width: 640px) {
+  .swoosh { display: none; } /* hide the decorative swoosh on small screens */
+  .site-bg-layer img, .site-bg-layer .bg-image { transform: translate3d(0,0,0); }
+}
+
+/* Respect reduced-motion preference globally (avoid heavy parallax/animations) */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
   }
 }

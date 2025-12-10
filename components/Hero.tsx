@@ -9,6 +9,7 @@ import {
   useMotionValue,
 } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 /**
  * Hero with scroll parallax + pointer parallax (mouse/finger)
@@ -31,24 +32,19 @@ export default function Hero() {
   const py = useMotionValue(0); // normalized y (-1..1)
 
   // Map normalized pointer values to pixel offsets per blob
-  // stronger movement for nearer blobs, weaker for farther ones
-  const blob1X_ptr = useTransform(px, (v) => v * 28); // top-left moves more
+  const blob1X_ptr = useTransform(px, (v) => v * 28);
   const blob1Y_ptr = useTransform(py, (v) => v * 18);
 
-  const blob2X_ptr = useTransform(px, (v) => v * -18); // opposite direction
+  const blob2X_ptr = useTransform(px, (v) => v * -18);
   const blob2Y_ptr = useTransform(py, (v) => v * -10);
 
   const blob3X_ptr = useTransform(px, (v) => v * 12);
   const blob3Y_ptr = useTransform(py, (v) => v * 8);
 
-  // Combine scroll and pointer transforms at render time by applying both to style.
-  // If reduced motion is requested, we won't bind pointer handlers and we won't animate floats.
-
   useEffect(() => {
     // nothing needed here except ensuring hooks are used client-side.
   }, []);
 
-  // Handler: on pointer move, compute normalized coordinates relative to container center
   function handlePointerMove(e: React.PointerEvent) {
     if (shouldReduce) return;
 
@@ -59,25 +55,21 @@ export default function Hero() {
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
 
-    // normalized -1 .. 1
     const nx = (e.clientX - cx) / (rect.width / 2);
     const ny = (e.clientY - cy) / (rect.height / 2);
 
-    // clamp between -1 and 1
     const clamp = (v: number) => Math.max(-1, Math.min(1, v));
 
     px.set(clamp(nx));
     py.set(clamp(ny));
   }
 
-  // On pointer leave, smoothly return to center
   function handlePointerLeave() {
     if (shouldReduce) return;
     px.set(0);
     py.set(0);
   }
 
-  // motion variants for text card entrance
   const cardVariants = {
     initial: { opacity: 0, y: 10, scale: 0.995 },
     animate: {
@@ -100,25 +92,57 @@ export default function Hero() {
 
   return (
     <section
-      className="relative overflow-hidden pt-16 pb-24"
+      className="relative overflow-hidden pt-16 pb-24 rounded-2xl"
       ref={containerRef}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       onPointerCancel={handlePointerLeave}
     >
+      {/* =========================
+          Full-bleed hero background image (next/image)
+          This sits behind the blobs and the glass card.
+          Put public/hero.jpg in your repo.
+          ========================= */}
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-20w-full overflow-hidden rounded-2xl"
+      >
+        <Image
+          src="/stones.jpg"
+          alt="Hero background"
+          fill
+          sizes="100vw"
+          style={{
+            objectFit: "cover",
+            objectPosition: "center",
+            borderRadius: "16px",
+          }}
+          priority
+
+          /* optional: add blur placeholder if you have a small base64 string
+             placeholder="blur"
+             blurDataURL="data:image/..."
+          */
+        />
+        {/* Optional overlay to darken/lighten the background for contrast */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "rgba(255,255,255,0.08)" }}
+        />
+      </div>
+
       {/* Background gradient blobs (absolute) */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        {/* Blob 1: top-left (warm saffron) */}
+        {/* Blob 1 */}
         <motion.div
           style={
             shouldReduce
               ? {}
               : {
-                  // combine scrollY offset and pointer offset by setting both transforms on style
-                  y: blob1Y, // scroll
+                  y: blob1Y,
                   rotate: blob1R,
-                  x: blob1X_ptr, // pointer
-                  // NOTE: framer-motion accepts motion values for these keys
+                  x: blob1X_ptr,
                 }
           }
           initial={shouldReduce ? {} : { scale: 1, rotate: 0 }}
@@ -137,7 +161,7 @@ export default function Hero() {
           }}
         />
 
-        {/* Blob 2: right (cool blue) */}
+        {/* Blob 2 */}
         <motion.div
           style={
             shouldReduce
@@ -164,7 +188,7 @@ export default function Hero() {
           }}
         />
 
-        {/* Blob 3: bottom-left (soft rose) */}
+        {/* Blob 3 */}
         <motion.div
           style={
             shouldReduce
