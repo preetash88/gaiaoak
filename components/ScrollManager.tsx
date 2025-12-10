@@ -5,77 +5,105 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 /**
- * ScrollManager
- * - Disables automatic browser scroll restoration and forces scroll-to-top
- *   on refresh and on client-side route changes. Mount this in your root
- *   layout so it runs early.
+ * FINAL ScrollManager (Stable)
  *
- * Note: If you want to *preserve* history (back/forward) scroll restoration,
- * you would implement a more advanced state-managed approach. This enforces
- * top-of-page behavior on reloads and navigations, per your requirement.
+ * Responsibilities:
+ *  1. Disable browser scroll restoration (so refresh always starts at top)
+ *  2. Scroll to top on **page refresh**
+ *  3. Scroll to top on **route change**
+ *  4. Respond to the "forceScrollTop" flag set by logo click
+ *  5. Update header blur state on scroll
  */
+
 export default function ScrollManager() {
   const pathname = usePathname();
 
+  /* -----------------------------------------------------
+   * 1) INIT: Disable browser's automatic scroll restore
+   * ----------------------------------------------------- */
+  useEffect(() => {
+    try {
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "manual";
+      }
+    } catch {}
+
+    return () => {
+      try {
+        history.scrollRestoration = "auto";
+      } catch {}
+    };
+  }, []);
+
+  /* -----------------------------------------------------
+   * 2) RUN ON PAGE LOAD (refresh) — force scroll to top
+   * ----------------------------------------------------- */
+  useEffect(() => {
+    // Allow layout to paint first
+    requestAnimationFrame(() => {
+      try {
+        window.scrollTo(0, 0);
+      } catch {}
+    });
+
+    // Cleanup before unload to avoid browser remembering scroll
+    const resetOnUnload = () => {
+      try {
+        window.scrollTo(0, 0);
+      } catch {}
+    };
+    window.addEventListener("beforeunload", resetOnUnload);
+
+    return () => window.removeEventListener("beforeunload", resetOnUnload);
+  }, []);
+
+  /* -----------------------------------------------------
+   * 3) ROUTE CHANGE → always scroll to top
+   * ----------------------------------------------------- */
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        window.scrollTo(0, 0);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(t);
+  }, [pathname]);
+
+  /* -----------------------------------------------------
+   * 4) FORCE SCROLL TOP triggered by logo click
+   * ----------------------------------------------------- */
+  useEffect(() => {
+    try {
+      const mustForce = sessionStorage.getItem("forceScrollTop");
+      if (mustForce === "1") {
+        sessionStorage.removeItem("forceScrollTop");
+
+        // Multiple passes for reliability
+        window.scrollTo(0, 0);
+        requestAnimationFrame(() => window.scrollTo(0, 0));
+        setTimeout(() => window.scrollTo(0, 0), 30);
+      }
+    } catch {}
+  }, [pathname]);
+
+  /* -----------------------------------------------------
+   * 5) HEADER: update blur/scrolled state
+   * ----------------------------------------------------- */
   useEffect(() => {
     const header = document.querySelector(".glass-nav") as HTMLElement | null;
     if (!header) return;
+
     const update = () => {
       const scrolled = window.scrollY > 6;
       if (scrolled) header.setAttribute("data-scrolled", "true");
       else header.removeAttribute("data-scrolled");
     };
-    update(); // run immediately on mount
+
+    update(); // run once immediately
+
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
   }, []);
-
-  useEffect(() => {
-    // If available, prefer setting history.scrollRestoration to manual early
-    // so browser won't automatically restore scroll on reload.
-    try {
-      if ("scrollRestoration" in history) {
-        // Set to manual while our SPA is mounted
-        history.scrollRestoration = "manual";
-      }
-    } catch (e) {
-      // ignore - some environments may not allow changing this
-    }
-
-    // On mount, force scroll to top (covers page refresh)
-    // Use setTimeout(0) to let the browser complete initial layout in edge cases.
-    const t = window.setTimeout(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    }, 0);
-
-    // On unload (user refresh/close), optionally set scroll to 0 to avoid saved pos in some browsers.
-    const onBeforeUnload = () => {
-      try {
-        window.scrollTo(0, 0);
-      } catch (e) {}
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-
-    return () => {
-      window.clearTimeout(t);
-      window.removeEventListener("beforeunload", onBeforeUnload);
-      // restore to auto when component unmounts (safe cleanup)
-      try {
-        if ("scrollRestoration" in history) {
-          history.scrollRestoration = "auto";
-        }
-      } catch (e) {}
-    };
-  }, []);
-
-  // Scroll to top when pathname changes (client-side navigation)
-  useEffect(() => {
-    // small delay helps Next finish rendering new content before scrolling
-    const id = window.setTimeout(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, [pathname]);
 
   return null;
 }
