@@ -12,18 +12,41 @@ export default function Header() {
   // Scroll-reactive glass effect
   useEffect(() => {
     const el = headerRef.current;
-    if (!el) return; // already prevents null
+    if (!el) return;
 
-    function onScroll() {
-      const y = window.scrollY;
+    // update function - runs in rAF so it happens after layout paint
+    const update = () => {
+      const y = window.scrollY || window.pageYOffset || 0;
       el.setAttribute("data-scrolled", y > 6 ? "true" : "false");
-    }
+    };
 
-    onScroll(); // initialize on load
+    // wrapper that schedules update in rAF (safer)
+    const schedule = () => {
+      // cancel previous rAF if needed - optional
+      if (typeof window === "undefined") return;
+      window.requestAnimationFrame(update);
+    };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    // listeners
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    window.addEventListener("load", schedule);
+
+    // also run once after mount when the browser has one rAF
+    schedule();
+
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("load", schedule);
+    };
   }, []);
+
+  //    onScroll(); // initialize on load
+
+  //    window.addEventListener("scroll", onScroll, { passive: true });
+  //    return () => window.removeEventListener("scroll", onScroll);
+  //  }, []);
 
   return (
     <header ref={headerRef} className="glass-nav">

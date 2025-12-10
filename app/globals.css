@@ -84,6 +84,11 @@ body {
   body {
     background-color: var(--bg);
     color: var(--text);
+    height: 100%;
+    margin: 0; /* IMPORTANT: remove default 8px margin */
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -311,8 +316,8 @@ body {
   overflow: hidden;
   /* using variables */
   background: var(--nav-bg);
-  border-bottom: 1px solid var(--nav-border);
-  box-shadow: 0 8px 28px var(--nav-shadow);
+  border-bottom: 1px solid color-mix(in srgb, var(--nav-border) 60%, rgba(0,0,0,0));
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
   backdrop-filter: blur(var(--nav-blur)) saturate(120%);
   -webkit-backdrop-filter: blur(var(--nav-blur)) saturate(120%);
 
@@ -359,7 +364,7 @@ body {
 .glass-nav[data-scrolled="true"] {
   backdrop-filter: blur(calc(var(--nav-blur) + 6px)) saturate(130%);
   -webkit-backdrop-filter: blur(calc(var(--nav-blur) + 6px)) saturate(130%);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.604);
+   box-shadow: 0 14px 40px rgba(0,0,0,0.45);
   transform: translateZ(0);
   border-bottom-color: rgba(255, 255, 255, 0.45);
   border-top-color: rgba(17, 17, 17, 0);
