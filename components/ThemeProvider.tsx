@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 type Theme = "light" | "dark" | null;
 const STORAGE_KEY = "sangha_theme_pref";
+const COOKIE_NAME = "theme";
 const TRANSITION_CLASS = "theme-transition";
 const TRANSITION_DURATION = 220; // ms
 
@@ -24,6 +25,29 @@ function safeLocalStorageSet(key: string, value: string) {
   }
 }
 
+/* cookie helpers */
+function readThemeCookie(): string | null {
+  try {
+    const m = document.cookie.match(
+      new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]+)`)
+    );
+    return m ? decodeURIComponent(m[1]) : null;
+  } catch {
+    return null;
+  }
+}
+function writeThemeCookie(value: string) {
+  try {
+    // set cookie for 1 year; SameSite Lax and path=/ keep it simple and safe.
+    const maxAge = 60 * 60 * 24 * 365;
+    document.cookie = `${COOKIE_NAME}=${encodeURIComponent(
+      value
+    )};path=/;max-age=${maxAge};SameSite=Lax`;
+  } catch {
+    /* ignore */
+  }
+}
+
 /* inject CSS once */
 function injectSliderCssOnce() {
   if (typeof window === "undefined") return;
@@ -34,9 +58,9 @@ function injectSliderCssOnce() {
   style.textContent = `
 /* ---- Compact theme slider with side icons ---- */
 .theme-slider {
-  --pill-w: 56px;    /* total width */
-  --pill-h: 28px;    /* total height */
-  --knob-size: 20px; /* knob diameter */
+  --pill-w: 56px;
+  --pill-h: 28px;
+  --knob-size: 20px;
   display:inline-flex;
   align-items:center;
   justify-content:space-between;
@@ -46,92 +70,25 @@ function injectSliderCssOnce() {
   width:var(--pill-w);
   height:var(--pill-h);
   border-radius:999px;
-  background: rgba(255,255,255,0.92); /* light pill by default */
+  background: rgba(255,255,255,0.92);
   border: 1px solid rgba(2,6,23,0.06);
   box-shadow: 0 6px 12px rgba(2,6,23,0.06);
   cursor: pointer;
   user-select: none;
   box-sizing: border-box;
 }
-
-/* dark pill background */
-html.dark .theme-slider {
-  background: rgba(35,43,52,0.36);
-  border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 6px 14px rgba(2,6,23,0.6);
-}
-
-/* icon containers (left/right) */
-.theme-slider__icon {
-  width: 16px;
-  height: 16px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  flex: 0 0 16px;
-  margin: 0 2px;
-}
-
-/* Sun: saffron in light, dim in dark */
+html.dark .theme-slider { background: rgba(35,43,52,0.36); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 6px 14px rgba(2,6,23,0.6); }
+.theme-slider__icon { width: 16px; height: 16px; display:inline-flex; align-items:center; justify-content:center; flex: 0 0 16px; margin: 0 2px; }
 .theme-slider__icon.sun { color: #F59E0B; }
 html.dark .theme-slider__icon.sun { color: rgba(255,255,255,0.48); }
-
-/* Moon: grey in light, blue in dark */
 .theme-slider__icon.moon { color: rgba(107,114,128,1); }
 html.dark .theme-slider__icon.moon { color: #60A5FA; }
-
-/* knob (absolute for reliable sliding) */
-.theme-slider__knob {
-  position: absolute;
-  left: 4px; /* left padding */
-  top: 50%;
-  transform: translateY(-50%);
-  width: var(--knob-size);
-  height: var(--knob-size);
-  border-radius: 999px;
-  background: #4B5563; /* dark grey (light mode) */
-  box-shadow: 0 6px 14px rgba(2,6,23,0.12);
-  transition:
-    left ${TRANSITION_DURATION}ms cubic-bezier(.2,.9,.25,1),
-    background 180ms ease,
-    box-shadow 180ms ease,
-    transform ${TRANSITION_DURATION}ms ease;
-  z-index: 5;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* knob in dark mode (make fully emerald green) */
-/* We set both when html.dark is present and when the button has .theme-slider--on */
-html.dark .theme-slider__knob,
-.theme-slider--on .theme-slider__knob {
-  background: #10B981; /* emerald green */
-  box-shadow: 0 8px 18px rgba(16,185,129,0.16);
-}
-
-/* When ON, move knob to the right (calc uses pill width and padding) */
-.theme-slider--on .theme-slider__knob {
-  left: calc(100% - 4px - var(--knob-size));
-}
-
-/* remove inner dot so knob is fully colored */
-.theme-slider__knob::after { content: ""; display: none; }
-
-/* focus ring */
-.theme-slider:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 6px rgba(59,130,246,0.08);
-  border-radius: 999px;
-}
-
-/* respects reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .theme-slider,
-  .theme-slider__knob {
-    transition: none !important;
-  }
-}
+.theme-slider__knob { position: absolute; left: 4px; top: 50%; transform: translateY(-50%); width: var(--knob-size); height: var(--knob-size); border-radius: 999px; background: #4B5563; box-shadow: 0 6px 14px rgba(2,6,23,0.12); transition: left ${TRANSITION_DURATION}ms cubic-bezier(.2,.9,.25,1), background 180ms ease, box-shadow 180ms ease, transform ${TRANSITION_DURATION}ms ease; z-index: 5; display:inline-flex; align-items:center; justify-content:center; }
+html.dark .theme-slider__knob, .theme-slider--on .theme-slider__knob { background: #10B981; box-shadow: 0 8px 18px rgba(16,185,129,0.16); }
+.theme-slider--on .theme-slider__knob { left: calc(100% - 4px - var(--knob-size)); }
+.theme-slider__knob::after { content: \"\"; display: none; }
+.theme-slider:focus-visible { outline: none; box-shadow: 0 0 0 6px rgba(59,130,246,0.08); border-radius: 999px; }
+@media (prefers-reduced-motion: reduce) { .theme-slider, .theme-slider__knob { transition: none !important; } }
 `;
   document.head.appendChild(style);
 }
@@ -172,13 +129,27 @@ export function useTheme() {
   useEffect(() => {
     injectSliderCssOnce();
 
-    const stored = safeLocalStorageGet(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") {
-      applyThemeToDocument(stored);
-      setTheme(stored);
+    // Priority 1: cookie (server may have read this already)
+    const cookieTheme = readThemeCookie();
+    if (cookieTheme === "light" || cookieTheme === "dark") {
+      applyThemeToDocument(cookieTheme);
+      setTheme(cookieTheme as Theme);
+      // also mirror into localStorage so both are in sync
+      safeLocalStorageSet(STORAGE_KEY, cookieTheme);
       return;
     }
 
+    // Priority 2: localStorage
+    const stored = safeLocalStorageGet(STORAGE_KEY);
+    if (stored === "light" || stored === "dark") {
+      applyThemeToDocument(stored as "light" | "dark");
+      setTheme(stored as Theme);
+      // ensure cookie exists for server-side renders next time
+      writeThemeCookie(stored);
+      return;
+    }
+
+    // Fallback: system preference
     const prefersDark =
       window.matchMedia &&
       window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -186,12 +157,13 @@ export function useTheme() {
     applyThemeToDocument(initial);
     setTheme(initial);
 
-    // listen for system changes only if user hasn't picked
+    // listen for system changes only if user hasn't explicitly chosen
     const mql = window.matchMedia
       ? window.matchMedia("(prefers-color-scheme: dark)")
       : null;
     const handler = () => {
       const nowStored = safeLocalStorageGet(STORAGE_KEY);
+      // if user hasn't picked, update theme
       if (nowStored !== "light" && nowStored !== "dark") {
         const prefers = mql?.matches ? "dark" : "light";
         applyThemeToDocument(prefers as "light" | "dark");
@@ -224,6 +196,7 @@ export function useTheme() {
 
     applyThemeToDocument(next);
     safeLocalStorageSet(STORAGE_KEY, next);
+    writeThemeCookie(next); // <<-- write cookie so server sees the preference on next request
     setTheme(next);
   }, [theme]);
 
@@ -237,6 +210,7 @@ export default function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
+  // Keep the same render gating you already had to avoid SSR mismatch
   if (!mounted) return null;
   const isDark = theme === "dark";
 

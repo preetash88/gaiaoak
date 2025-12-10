@@ -2,7 +2,9 @@
 import Hero from "@/components/Hero";
 import AnimatedSection from "@/components/motion/AnimatedSection";
 import { StaggeredList, StaggerItem } from "@/components/motion/StaggeredList";
+import PinGalleryClientWrapper from "@/components/PinGalleryClientWrapper";
 import Link from "next/link";
+
 
 export default function Home() {
   return (
@@ -13,9 +15,7 @@ export default function Home() {
 
       <AnimatedSection className="py-12">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Hakuna Matata
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Hakuna Matata</h1>
           <p className="text-lg text-muted-foreground mb-6">
             Service • Spirituality • Welfare — serving people with compassion.
           </p>
@@ -59,6 +59,12 @@ export default function Home() {
               </div>
             </StaggerItem>
           </StaggeredList>
+        </div>
+      </AnimatedSection>
+      {/* ====== Pinterest-style Discover section ====== */}
+      <AnimatedSection className="py-10">
+        <div className="max-w-7xl mx-auto">
+          <PinGalleryClientWrapper />
         </div>
       </AnimatedSection>
     </>
